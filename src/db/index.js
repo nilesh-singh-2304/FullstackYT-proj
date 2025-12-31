@@ -5,6 +5,8 @@ const ConnectDB = async () => {
     try {
         const connnection = await mongoose.connect(`${process.env.MONGO_URI}/${DB_NAME}`);
         console.log(`DB connected successfully to ${connnection}`);
+        // console.log(connnection);
+        
 
         //connection object looks like : 
         // {
