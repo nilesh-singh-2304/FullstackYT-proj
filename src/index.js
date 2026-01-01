@@ -3,14 +3,25 @@
 // require("dotenv").config({path : "./env"}); //to load env variables from .env file as soon as app runs so that access goes to all
 import dotenv from "dotenv";
 import ConnectDB from "./db/index.js";
+import app from "./app.js";
 
 dotenv.config({ path: "./.env" }); //to load env variables from .env file as soon as app runs so that access goes to all
 
-ConnectDB();
+//connnectDb ek promise return krega th hm .then ka use krk app lsten ko handle kr skte h
+ConnectDB()
+.then(() =>{
+    app.on("error" , () => {
+        console.log("App error ");
+        throw error;
+    })
 
-
-
-
+    app.listen(process.env.PORT || 8000 , () => {
+        console.log(`App is running at http://localhost:${process.env.PORT}`);
+    })
+})
+.catch((error) => {
+    console.log("Error in DB connection at index.js ", error);
+})
 
 
 
