@@ -20,7 +20,7 @@ const UserSchema = new mongoose.Schema({
     },
     fullname : {
         type: String,
-        required: true,
+        required: true, 
         trim: true,
         index: true,         //if we wanna make the model optimized for searching we can use this index because indexing makes searching faster
     },
