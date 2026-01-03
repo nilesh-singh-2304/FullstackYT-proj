@@ -3,7 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import {uploadToCloudinary} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-import { use } from "react";
+// import { use } from "react";
 
 
 //we made async function inside asynchandler because we want to use await inside it in future if needed
@@ -169,7 +169,7 @@ const loginUser = asyncHandler( async (req,res) => {
     )
 })
 
-const longoutUser = asyncHandler( async (req,res) => {
+const logoutUser = asyncHandler( async (req,res) => {
     //Todos
     //get user id from req.user added by auth middleware
     //remove refresh token from db
@@ -209,4 +209,4 @@ const longoutUser = asyncHandler( async (req,res) => {
     )
 })
 
-export { registerUser , loginUser , longoutUser };
+export { registerUser , loginUser , logoutUser };
