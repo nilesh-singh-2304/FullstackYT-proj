@@ -23,7 +23,7 @@ app.use(express.json({limit : "20kb"})); //to parse json data in request body
 app.use(express.static("public"));
 
 //for cookie parser
-app.use(cookieParser());
+app.use(cookieParser()); // ab hm req and res m cookies ko access kr skte h
 
 
 //((req,rex) --> (err,req,res,next)) ye middleware error handling k lie hota h
