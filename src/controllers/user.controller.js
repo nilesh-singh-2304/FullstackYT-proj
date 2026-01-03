@@ -53,6 +53,10 @@ const registerUser = asyncHandler( async (req,res) => {
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar image is required");
     }
+    if(avatarLocalPath){
+        console.log("Avatar image is : ", avatarLocalPath);
+        
+    }
 
     //upload to cloudinary
     const avatar = await uploadToCloudinary(avatarLocalPath) // awaited as uploading it to cloudinary will take time
@@ -65,8 +69,8 @@ const registerUser = asyncHandler( async (req,res) => {
     //create user object and save to db
     const user = await User.create({
         fullname,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",   //if cover image is not uploaded then set it to empty string
+        avatar: avatar,
+        coverImage: coverImage || "",   //if cover image is not uploaded then set it to empty string
         username: username.toLowerCase(),
         email,
         password

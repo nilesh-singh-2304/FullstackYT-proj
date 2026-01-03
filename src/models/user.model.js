@@ -46,9 +46,9 @@ const UserSchema = new mongoose.Schema({
 
 //we'll use pre hook here which is a middleware that will run before saving or happening of an event on the user
 UserSchema.pre("save", async function(next){           // we used function keyword here because we need to use 'this' keyword inside it and arrow functions don't bind 'this' keyword
-    if(!this.isModified("password")) return next();   //if password is not modified then we don't need to hash it again
+    if(!this.isModified("password")) return;   //if password is not modified then we don't need to hash it again
     this.password = await bcrypt.hash(this.password, 10);   //hashing the password with salt rounds of 10
-    next();
+
 });
 
 //now we can inject some custom methods to our schema ones like updateone , findone etc
