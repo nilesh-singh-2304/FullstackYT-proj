@@ -251,4 +251,91 @@ const refreshAccessToken = asyncHandler( async(req,res) => {
     }
 })
 
-export { registerUser , loginUser , logoutUser , refreshAccessToken };
+const changePassword = asyncHandler(async (req,res) => {
+    const {oldPassword, newPassword} = req.body;
+
+    const user = await User.findById(req.user?._id);
+    const isPasswordCorrect = await user.checkPassword(oldPassword);
+
+    if(!isPasswordCorrect){
+        throw new ApiError(401, "Old password is incorrect");
+    }
+
+    user.password = newPassword;
+    await user.save({validateBeforeSave: false});
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, null, "Password changed successfully")
+    )
+})
+
+const getUser = asyncHandler(async (req,res) => {
+    const user = req.user; //added by auth middleware
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user, "User fetched successfully")
+    )
+})
+
+const updateAccountDetails = asyncHandler(async (req,res) => {
+    const {fullname, email} = req.body;  //file update k controllers mostly alag rkhne chahiye its beneficial for code readability and maintainability
+
+    if(!fullname || !email){
+        throw new ApiError(400, "All fields are required");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullname: fullname,
+                email: email
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user, "Account details updated successfully")
+    )
+})
+
+//file update k time hme do middleware chahiye , ek multer ka and ek verifyJWT ka 
+const updateUserAvatar = asyncHandler(async (req,res) => {
+    const avatarLocalPath = req.file?.path;
+    if(!avatarLocalPath){
+        throw new ApiError(400, "Avatar file is missing");
+    }
+
+    const avatar = await uploadToCloudinary(avatarLocalPath);
+    if(!avatar){
+        throw new ApiError(500, "Error uploading avatar image , please try again later");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                avatar: avatar
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password");
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user, "Avatar updated successfully")
+    )
+})
+
+export { registerUser , loginUser , logoutUser , refreshAccessToken , changePassword , getUser , updateAccountDetails , updateUserAvatar };
