@@ -1,0 +1,7 @@
+Access token short lived and refresh tokens long lived hote h 
+jbtk access token h toh voh feature hm use kr skte h jha authentication zruri hh
+but lets say access token ko hmne 15 min m expire kr dia toh hme fr se login krna pdega 
+but yhi use aata h refresh tokens ka , ise hm user ko bhi dete h and DB m bhi rkhte h 
+user ko validate access token se he krte h , bs khte h ki baar baar login ki zrurat nhi h
+agr refresh token h toh ek endpoint hit krdo vha hm check kr lenge  ki user ka refresh token and DB waals refresh token same h ya nhi
+agr same h toh nya access token de denge vrna fr se login kro
