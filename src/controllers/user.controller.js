@@ -338,4 +338,122 @@ const updateUserAvatar = asyncHandler(async (req,res) => {
     )
 })
 
-export { registerUser , loginUser , logoutUser , refreshAccessToken , changePassword , getUser , updateAccountDetails , updateUserAvatar };
+const getUserChannelProfle = asyncHandler( async (req,res) =>{
+    const {username} = req.params;
+
+    if(!username?.trim()){
+        throw new ApiError(400, "Username is required");
+    }
+
+    const channel = await User.aggregate([
+        {
+            $match: { 
+                username: username.toLowerCase() //match karna hh username se which means ki hmara channel konsa hh
+            }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",   //collection name in mongodb
+                localField: "_id",       //user k _id se match krna hh
+                foreignField: "channel", //subscriptions m jaha channel hh usse match krna hh
+                as: "subscribers"        //jo result milega usse hm subscribers m daal denge
+            }
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",      //user k _id se match krna hh
+                foreignField: "subscriber", //subscriptions m jaha subscriber hh usse match krna hh
+                as: "subscribedTo"
+            }
+        },
+        {
+            $addFields: {
+                subscriberCount: { $size: "$subscribers" }, //jo subscribers array milega uski size ko hm ek nayi field m daal denge
+                subscribedToCount: { $size: "$subscribedTo" },
+                isSubscribed: {
+                    if: {$in: [req.user?._id, "$subscribers.subscriber"]}, //agr jo hmara user hh voh subscribers m hh toh true else false
+                    then: true,
+                    else: false
+                }
+            }
+        },
+        {
+            $project: {
+                fullname: 1,
+                username: 1,
+                email: 1,
+                avatar: 1,
+                subscriberCount: 1,
+                subscribedToCount: 1,
+                isSubscribed: 1,
+                coverImage: 1,
+                password: 0,
+                refreshToken: 0,
+            }
+        }
+    ])
+
+    if(!channel?.length){
+        throw new ApiError(404, "Channel not found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, channel[0], "Channel profile fetched successfully")
+    )
+})
+
+const getWatchHistory = asyncHandler( async (req,res) => {
+    const userId = req.user?._id;   // ism hme ek string milti h "8498udfhiudf87hjweffiuserew" but real object id hogi ObjectId('8498udfhiudf87hjweffiuserew') jo mongodb se milti h mongoose bs ism se ObjectId('') hata deta h
+
+    const user = await User.aggregate([
+        {
+            $match: {
+                // _id: userId  // yeh likhne se ho jyegi mistake as it is only the string and not the ID
+                _id: new mongoose.Types.ObjectId(userId),
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",  //user k watch history m video field hh jisme video id hh
+                foreignField: "_id",               //videos collection m _id se match krna hh
+                as: "watchedVideos",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    fullname: 1,
+                                    username: 1,
+                                    avatar: 1
+                                }
+                            ]
+                        }
+                    }, ///yha tk toh owner ka array ayega jisme ek hi object hoga toh hme owner[0] krk value nikalni hogi , ise htane k lie hm ek or pipeline likh skte h
+                    {
+                        $addFields: {  //isme hm ek nayi field add kr rhe h jo ki owner hh jisme sbse pehla element le lo jo ki sirf ek hi hoga
+                            owner: {
+                                $first: "$owner" //isme sbse pehla element le lo jo ki sirf ek hi hoga
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user[0].watchedVideos, "Watch history fetched successfully")
+    )
+})
+
+export { registerUser , loginUser , logoutUser , refreshAccessToken , changePassword , getUser , updateAccountDetails , updateUserAvatar , getUserChannelProfle , getWatchHistory };

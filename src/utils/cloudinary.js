@@ -6,6 +6,7 @@
 //if the file gets uploaded successfully , we'll unlink the local file to save space
 //otherwise we'll return an error or retry uploading
 import {v2 as cloudinary} from "cloudinary";
+import { log } from "console";
 import fs from "fs";
 
 cloudinary.config({
@@ -17,10 +18,20 @@ cloudinary.config({
 const uploadToCloudinary = async (localFilePath) => {
     try {
         if(!localFilePath) throw new Error("File path is required");
+        console.log(localFilePath);
+        
         //uploading to cloudinary
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: "auto",   //auto will detect the type of file be it image , video or any other
         })
+
+        if(response){
+            console.log("response is coming");
+            
+        }
+
+        console.log("response is :" , response);
+        
 
         //file is uploaded successfully 
         // console.log("File uploaded , result url is" , response.url);
@@ -29,6 +40,7 @@ const uploadToCloudinary = async (localFilePath) => {
 
     } catch (error) {
         fs.unlinkSync(localFilePath);   //deleting the local file in case of error too to save space, sync take care that file is deleted before moving forward
+        console.error("Error uploading file to cloudinary: ", error);
         return null;
     }
 }
