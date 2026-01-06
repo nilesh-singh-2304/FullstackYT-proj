@@ -348,7 +348,7 @@ const getUserChannelProfle = asyncHandler( async (req,res) =>{
     const channel = await User.aggregate([
         {
             $match: { 
-                username: username.toLowerCase() 
+                username: username.toLowerCase() //match karna hh username se which means ki hmara channel konsa hh
             }
         },
         {
@@ -405,4 +405,55 @@ const getUserChannelProfle = asyncHandler( async (req,res) =>{
     )
 })
 
-export { registerUser , loginUser , logoutUser , refreshAccessToken , changePassword , getUser , updateAccountDetails , updateUserAvatar };
+const getWatchHistory = asyncHandler( async (req,res) => {
+    const userId = req.user?._id;   // ism hme ek string milti h "8498udfhiudf87hjweffiuserew" but real object id hogi ObjectId('8498udfhiudf87hjweffiuserew') jo mongodb se milti h mongoose bs ism se ObjectId('') hata deta h
+
+    const user = await User.aggregate([
+        {
+            $match: {
+                // _id: userId  // yeh likhne se ho jyegi mistake as it is only the string and not the ID
+                _id: new mongoose.Types.ObjectId(userId),
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",  //user k watch history m video field hh jisme video id hh
+                foreignField: "_id",               //videos collection m _id se match krna hh
+                as: "watchedVideos",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    fullname: 1,
+                                    username: 1,
+                                    avatar: 1
+                                }
+                            ]
+                        }
+                    }, ///yha tk toh owner ka array ayega jisme ek hi object hoga toh hme owner[0] krk value nikalni hogi , ise htane k lie hm ek or pipeline likh skte h
+                    {
+                        $addFields: {  //isme hm ek nayi field add kr rhe h jo ki owner hh jisme sbse pehla element le lo jo ki sirf ek hi hoga
+                            owner: {
+                                $first: "$owner" //isme sbse pehla element le lo jo ki sirf ek hi hoga
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user[0].watchedVideos, "Watch history fetched successfully")
+    )
+})
+
+export { registerUser , loginUser , logoutUser , refreshAccessToken , changePassword , getUser , updateAccountDetails , updateUserAvatar , getUserChannelProfle , getWatchHistory };
